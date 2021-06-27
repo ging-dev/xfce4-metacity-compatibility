@@ -1,7 +1,5 @@
 #include <gtk/gtk.h>
 #include <xfconf/xfconf.h>
-#define WNCK_I_KNOW_THIS_IS_UNSTABLE 1
-#include <libwnck/libwnck.h>
 
 /* Gingdev - Symfony Style Coding */
 
@@ -9,9 +7,12 @@ static void cb_xfwm4_channel_property_changed(
   XfconfChannel *channel,
   const gchar *property_name,
   const GValue *value,
-  WnckScreen *screen
+  GSettings *settings
 ) {
-  wnck_screen_change_workspace_count(screen, g_value_get_int(value));
+  g_settings_set_int(settings,
+    "num-workspaces",
+    g_value_get_int(value)
+  );
 }
 
 int main(int argc, char *argv[]) {
@@ -23,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   gtk_init(&argc, &argv);
 
-  WnckScreen *screen = wnck_screen_get_default();
+  GSettings *settings = g_settings_new("org.gnome.desktop.wm.preferences");
 
   XfconfChannel *xfsettings = xfconf_channel_new_with_property_base(
     "xfwm4",
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
     xfsettings,
     "property-changed",
     G_CALLBACK(cb_xfwm4_channel_property_changed),
-    screen
+    settings
   );
 
   gtk_main();
